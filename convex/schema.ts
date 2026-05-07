@@ -38,4 +38,19 @@ export default defineSchema({
   })
     .index("by_post", ["postId"])
     .index("by_tag", ["tagId"]),
+
+  comments: defineTable({
+    postId: v.id("posts"),
+    authorId: v.id("users"),
+    content: v.string(),
+    parentId: v.optional(v.id("comments")),
+  }).index("by_post", ["postId"]),
+
+  postViews: defineTable({
+    postId: v.id("posts"),
+    date: v.string(),
+    count: v.number(),
+  })
+    .index("by_post_date", ["postId", "date"])
+    .index("by_post", ["postId"]),
 });

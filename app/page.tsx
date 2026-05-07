@@ -12,6 +12,19 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PenLine } from "lucide-react";
 
+function AdminButton() {
+  const me = useQuery(api.users.getMe);
+  if (me?.role !== "admin" && me?.role !== "author") return null;
+  return (
+    <Link href="/admin">
+      <Button variant="ghost" size="sm" className="gap-1.5">
+        <PenLine className="h-4 w-4" />
+        Écrire
+      </Button>
+    </Link>
+  );
+}
+
 export default function Home() {
   const posts = useQuery(api.posts.listPublished);
 
@@ -24,12 +37,7 @@ export default function Home() {
           </Link>
           <div className="flex items-center gap-3">
             <Authenticated>
-              <Link href="/admin">
-                <Button variant="ghost" size="sm" className="gap-1.5">
-                  <PenLine className="h-4 w-4" />
-                  Écrire
-                </Button>
-              </Link>
+              <AdminButton />
               <UserButton />
             </Authenticated>
             <Unauthenticated>

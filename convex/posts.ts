@@ -62,7 +62,8 @@ export const create = mutation({
       .query("users")
       .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
       .unique();
-    if (!user) throw new Error("Utilisateur non trouvé, synchronise ton compte d'abord");
+    if (!user) throw new Error("Utilisateur non trouvé");
+    if (user.role !== "admin" && user.role !== "author") throw new Error("Accès refusé");
 
     const slug =
       args.title

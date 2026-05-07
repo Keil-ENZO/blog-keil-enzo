@@ -18,6 +18,9 @@ export const upsertUser = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Non authentifié");
 
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const isAdmin = adminEmail && identity.email === adminEmail;
+
     const existing = await ctx.db
       .query("users")
       .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
@@ -28,6 +31,8 @@ export const upsertUser = mutation({
         name: identity.name ?? existing.name,
         email: identity.email ?? existing.email,
         avatarUrl: identity.pictureUrl ?? existing.avatarUrl,
+        // Promouvoir en admin si l'email correspond
+        ...(isAdmin && existing.role !== "admin" ? { role: "admin" as const } : {}),
       });
     } else {
       await ctx.db.insert("users", {
@@ -35,7 +40,7 @@ export const upsertUser = mutation({
         name: identity.name ?? "Anonyme",
         email: identity.email ?? "",
         avatarUrl: identity.pictureUrl ?? undefined,
-        role: "author",
+        role: isAdmin ? "admin" : "reader",
       });
     }
   },
