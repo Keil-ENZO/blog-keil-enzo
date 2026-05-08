@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useMutation } from "convex/react";
+import { use, useState, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useRouter } from "next/navigation";
@@ -16,9 +16,11 @@ import { CoverImageUpload } from "@/components/CoverImageUpload";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
-export default function NewPostPage() {
+export default function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
-  const createPost = useMutation(api.posts.create);
+  const post = useQuery(api.posts.getById, { id: id as Id<"posts"> });
+  const updatePost = useMutation(api.posts.update);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -27,21 +29,19 @@ export default function NewPostPage() {
   const [coverImageId, setCoverImageId] = useState<Id<"_storage"> | null>(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  // Auto-save indicator
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout>>(null);
-
-  function scheduleAutoSave() {
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => {
-      setLastSaved(new Date());
-    }, 3000);
-  }
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    scheduleAutoSave();
-  }, [title, content, excerpt]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (post && !ready) {
+      setTitle(post.title);
+      setContent(post.content);
+      setExcerpt(post.excerpt ?? "");
+      setTagIds((post.tags ?? []).map((t: any) => t._id as Id<"tags">));
+      setCoverImageId((post as any).coverImageId ?? null);
+      setCoverPreviewUrl((post as any).coverUrl ?? null);
+      setReady(true);
+    }
+  }, [post, ready]);
 
   async function handleSave() {
     if (!title.trim()) {
@@ -50,20 +50,37 @@ export default function NewPostPage() {
     }
     setSaving(true);
     try {
-      await createPost({
+      await updatePost({
+        id: id as Id<"posts">,
         title,
         content,
         excerpt: excerpt || undefined,
-        tagIds: tagIds.length > 0 ? tagIds : undefined,
-        coverImageId: coverImageId ?? undefined,
+        tagIds,
+        coverImageId: coverImageId,
       });
-      toast.success("Article sauvegardé en brouillon");
+      toast.success("Article mis à jour");
       router.push("/admin");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur lors de la sauvegarde");
     } finally {
       setSaving(false);
     }
+  }
+
+  if (post === undefined) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (post === null) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Article introuvable.</p>
+      </div>
+    );
   }
 
   return (
@@ -76,21 +93,14 @@ export default function NewPostPage() {
               Admin
             </Button>
           </Link>
-          <div className="flex items-center gap-3">
-            {lastSaved && (
-              <span className="text-xs text-muted-foreground hidden sm:block">
-                Modifié à {lastSaved.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-              </span>
+          <Button onClick={handleSave} disabled={saving} size="sm" className="gap-1.5">
+            {saving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="h-3.5 w-3.5" />
             )}
-            <Button onClick={handleSave} disabled={saving} size="sm" className="gap-1.5">
-              {saving ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Save className="h-3.5 w-3.5" />
-              )}
-              Sauvegarder
-            </Button>
-          </div>
+            Sauvegarder
+          </Button>
         </div>
       </header>
 
@@ -107,7 +117,9 @@ export default function NewPostPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="excerpt">Résumé <span className="text-muted-foreground font-normal">(optionnel)</span></Label>
+          <Label htmlFor="excerpt">
+            Résumé <span className="text-muted-foreground font-normal">(optionnel)</span>
+          </Label>
           <Textarea
             id="excerpt"
             placeholder="Une courte description affichée sur la liste des articles..."
@@ -132,14 +144,16 @@ export default function NewPostPage() {
           <TagSelector selectedIds={tagIds} onChange={setTagIds} />
         </div>
 
-        <div className="space-y-2">
-          <Label>Contenu</Label>
-          <Editor
-            content={content}
-            onChange={setContent}
-            placeholder="Commence à écrire ton article..."
-          />
-        </div>
+        {ready && (
+          <div className="space-y-2">
+            <Label>Contenu</Label>
+            <Editor
+              content={content}
+              onChange={setContent}
+              placeholder="Commence à écrire ton article..."
+            />
+          </div>
+        )}
       </main>
     </div>
   );

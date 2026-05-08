@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { PenLine, Plus, Eye, EyeOff, Trash2, BarChart2, MessageSquare, TrendingUp } from "lucide-react";
+import { PenLine, Plus, Eye, EyeOff, Trash2, BarChart2, TrendingUp, Pencil, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Id } from "@/convex/_generated/dataModel";
 import { ViewsChart } from "@/components/ViewsChart";
@@ -29,6 +29,7 @@ export default function AdminPage() {
   const posts = useQuery(api.posts.listAll);
   const viewTotals = useQuery(api.views.totalByPost);
   const chartData = useQuery(api.views.last30Days);
+  const subscriberCount = useQuery(api.newsletter.count);
   const publish = useMutation(api.posts.publish);
   const unpublish = useMutation(api.posts.unpublish);
   const remove = useMutation(api.posts.remove);
@@ -80,7 +81,7 @@ export default function AdminPage() {
       <main className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
         {/* Stats globales */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Card>
             <CardHeader className="pb-1 pt-4 px-4">
               <div className="flex items-center gap-2 text-muted-foreground text-xs">
@@ -114,6 +115,18 @@ export default function AdminPage() {
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <p className="text-2xl font-bold">{posts?.length ?? 0}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-1 pt-4 px-4">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                <Users className="h-3.5 w-3.5" />
+                Abonnés newsletter
+              </div>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <p className="text-2xl font-bold">{subscriberCount ?? 0}</p>
             </CardContent>
           </Card>
         </div>
@@ -206,6 +219,13 @@ export default function AdminPage() {
                           Dépublier
                         </Button>
                       )}
+
+                      <Link href={`/admin/edit/${post._id}`}>
+                        <Button size="sm" variant="outline" className="gap-1.5">
+                          <Pencil className="h-3.5 w-3.5" />
+                          Modifier
+                        </Button>
+                      </Link>
 
                       {post.status === "published" && (
                         <Link href={`/posts/${post.slug}`}>

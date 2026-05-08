@@ -22,10 +22,19 @@ export default defineSchema({
       v.literal("archived")
     ),
     publishedAt: v.optional(v.number()),
+    coverImageId: v.optional(v.id("_storage")),
   })
     .index("by_slug", ["slug"])
     .index("by_author", ["authorId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["status"],
+    })
+    .searchIndex("search_excerpt", {
+      searchField: "excerpt",
+      filterFields: ["status"],
+    }),
 
   tags: defineTable({
     name: v.string(),
@@ -53,4 +62,12 @@ export default defineSchema({
   })
     .index("by_post_date", ["postId", "date"])
     .index("by_post", ["postId"]),
+
+  subscribers: defineTable({
+    email: v.string(),
+    token: v.string(),
+    subscribedAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_token", ["token"]),
 });

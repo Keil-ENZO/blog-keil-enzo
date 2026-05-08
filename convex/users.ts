@@ -12,6 +12,19 @@ export const getMe = query({
   },
 });
 
+function resolveName(identity: {
+  name?: string | null;
+  givenName?: string | null;
+  familyName?: string | null;
+  email?: string | null;
+}): string {
+  if (identity.name) return identity.name;
+  const parts = [identity.givenName, identity.familyName].filter(Boolean).join(" ");
+  if (parts) return parts;
+  if (identity.email) return identity.email.split("@")[0];
+  return "Anonyme";
+}
+
 export const upsertUser = mutation({
   args: {},
   handler: async (ctx) => {
@@ -20,6 +33,7 @@ export const upsertUser = mutation({
 
     const adminEmail = process.env.ADMIN_EMAIL;
     const isAdmin = adminEmail && identity.email === adminEmail;
+    const name = resolveName(identity);
 
     const existing = await ctx.db
       .query("users")
@@ -28,16 +42,15 @@ export const upsertUser = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, {
-        name: identity.name ?? existing.name,
+        name,
         email: identity.email ?? existing.email,
         avatarUrl: identity.pictureUrl ?? existing.avatarUrl,
-        // Promouvoir en admin si l'email correspond
         ...(isAdmin && existing.role !== "admin" ? { role: "admin" as const } : {}),
       });
     } else {
       await ctx.db.insert("users", {
         clerkId: identity.subject,
-        name: identity.name ?? "Anonyme",
+        name,
         email: identity.email ?? "",
         avatarUrl: identity.pictureUrl ?? undefined,
         role: isAdmin ? "admin" : "reader",
