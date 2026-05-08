@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { GitBranch, Mail, SquareArrowOutUpRight } from "lucide-react";
+import { GitBranch, Mail } from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 };
 
 const skills = [
-  "TypeScript", "React", "Next.js", "Convex", "Tailwind CSS",
-  "Node.js", "Git", "UI/UX",
+  "TypeScript", "Python", "Next.js", "Convex", "Tailwind CSS",
+  "Node.js", "LLMs", "Blockchain", "Git",
 ];
 
 export default function AboutPage() {
@@ -47,9 +47,9 @@ export default function AboutPage() {
         <section className="mb-14">
           <h2 className="text-xl font-bold mb-4">Ce que je fais</h2>
           <p className="text-muted-foreground leading-relaxed mb-6">
-            Je construis des applications web avec un focus sur l&apos;expérience utilisateur et la
-            performance. J&apos;aime explorer les nouvelles technologies — en ce moment je suis particulièrement
-            fan de Convex pour le backend réactif et de Next.js pour le frontend.
+            Je construis des applications web et des outils propulsés par l&apos;IA — chatbots, intégrations
+            LLM, automatisations. J&apos;aime explorer ce qui est possible à l&apos;intersection du code
+            et des modèles de langage, aussi bien en Python qu&apos;avec Next.js côté web.
           </p>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill) => (
@@ -93,15 +93,9 @@ export default function AboutPage() {
                 GitHub
               </Button>
             </a>
-            <a href="https://x.com/" target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="gap-2">
-                <SquareArrowOutUpRight className="h-4 w-4" />
-                Twitter / X
-              </Button>
-            </a>
             <a href="mailto:enzo.keil06@icloud.com">
               <Button variant="outline" className="gap-2">
-                <Mail className="h-4 w-4" aria-hidden />
+                <Mail className="h-4 w-4" />
                 Email
               </Button>
             </a>

@@ -19,7 +19,7 @@ export function Footer() {
 
         {/* Liens bas de page */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Keil-Enzo. Construit avec Convex + Next.js.</p>
+          <p>© {new Date().getFullYear()} Keil-Enzo.</p>
           <div className="flex items-center gap-4">
             <Link href="/about" className="hover:text-foreground transition-colors">
               À propos
