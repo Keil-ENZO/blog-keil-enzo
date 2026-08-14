@@ -42,3 +42,7 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# convex data exports (contient des données perso)
+dev-data.zip
+*-data.zip

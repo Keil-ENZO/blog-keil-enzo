@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 async function withTags(ctx: any, post: any) {
@@ -223,5 +224,40 @@ export const remove = mutation({
   args: { id: v.id("posts") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+  },
+});
+
+export const createAndPublish = internalMutation({
+  args: {
+    title: v.string(),
+    content: v.string(),
+    excerpt: v.optional(v.string()),
+    tagIds: v.optional(v.array(v.id("tags"))),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.query("users").first();
+    if (!user) throw new Error("Aucun utilisateur trouvé");
+
+    const slug =
+      args.title.toLowerCase().normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") + "-" + Date.now();
+
+    const postId = await ctx.db.insert("posts", {
+      title: args.title,
+      slug,
+      content: args.content,
+      excerpt: args.excerpt,
+      authorId: user._id,
+      status: "published",
+      publishedAt: Date.now(),
+    });
+
+    for (const tagId of args.tagIds ?? []) {
+      await ctx.db.insert("postTags", { postId, tagId });
+    }
+
+    return postId;
   },
 });

@@ -10,6 +10,7 @@
 
 import type * as comments from "../comments.js";
 import type * as files from "../files.js";
+import type * as migrations from "../migrations.js";
 import type * as newsletter from "../newsletter.js";
 import type * as posts from "../posts.js";
 import type * as tags from "../tags.js";
@@ -25,6 +26,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   comments: typeof comments;
   files: typeof files;
+  migrations: typeof migrations;
   newsletter: typeof newsletter;
   posts: typeof posts;
   tags: typeof tags;

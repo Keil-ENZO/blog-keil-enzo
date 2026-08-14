@@ -41,8 +41,12 @@ export const upsertUser = mutation({
       .unique();
 
     if (existing) {
+      // On conserve un nom déjà défini manuellement (ex: "Enzo") plutôt que
+      // de l'écraser à chaque connexion avec le nom Clerk/Google.
+      const keepName =
+        existing.name && existing.name !== "Anonyme" ? existing.name : name;
       await ctx.db.patch(existing._id, {
-        name,
+        name: keepName,
         email: identity.email ?? existing.email,
         avatarUrl: identity.pictureUrl ?? existing.avatarUrl,
         ...(isAdmin && existing.role !== "admin" ? { role: "admin" as const } : {}),

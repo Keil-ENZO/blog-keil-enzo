@@ -36,7 +36,7 @@ export default function Home() {
             Salut, je suis <span className="text-primary">Enzo</span>.
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
-            Je partage ce qui m&apos;anime : dev, IA, montres, projets perso et tout ce qui mérite d&apos;être écrit.
+            Je partage ce qui m&apos;anime : dev, IA, tech, projets perso et tout ce qui mérite d&apos;être écrit.
             Pas de bullshit — juste ce que je vis vraiment.
           </p>
           <div className="flex gap-3 mt-6">
