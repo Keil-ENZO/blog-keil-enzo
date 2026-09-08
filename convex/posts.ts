@@ -2,6 +2,7 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { toArticleHtml } from "./lib/markdown";
 
 async function withTags(ctx: any, post: any) {
   const author = await ctx.db.get(post.authorId);
@@ -227,6 +228,8 @@ export const remove = mutation({
   },
 });
 
+// Point d'entrée du pipeline d'articles. n8n envoie ce qu'il envoie déjà, son
+// HTML abîmé, et `toArticleHtml` le remet d'aplomb. Voir `lib/markdown.ts`.
 export const createAndPublish = internalMutation({
   args: {
     title: v.string(),
@@ -247,7 +250,7 @@ export const createAndPublish = internalMutation({
     const postId = await ctx.db.insert("posts", {
       title: args.title,
       slug,
-      content: args.content,
+      content: toArticleHtml(args.content),
       excerpt: args.excerpt,
       authorId: user._id,
       status: "published",

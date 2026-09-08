@@ -1,4 +1,6 @@
 import { internalMutation } from "./_generated/server";
+import { v } from "convex/values";
+import { isBrokenArticleHtml, toArticleHtml } from "./lib/markdown";
 
 // Mutation ponctuelle : consolide toutes les données vers la vraie fiche
 // utilisateur d'Enzo (instance Clerk Production), supprime l'ancienne fiche
@@ -58,6 +60,34 @@ export const consolidateToEnzo = internalMutation({
       postsReassigned: posts.length,
       commentsReassigned: comments.length,
       usersDeleted,
+    };
+  },
+});
+
+// Répare le HTML des articles insérés par n8n entre le 29/06 et le 08/09/2026 :
+// tableaux, blocs de code, listes, code inline et liens y sont restés en
+// markdown brut, et les titres sont emballés dans un `<p>`. Le markdown est
+// intact à l'intérieur, `toArticleHtml` le ressort et le reconvertit.
+//
+// Idempotent : un article déjà réparé ne porte plus la signature et est ignoré.
+// À lancer en prod, autant de fois que nécessaire jusqu'à `remaining: 0` :
+//   npx convex run migrations:repairArticleHtml --prod
+export const repairArticleHtml = internalMutation({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 100;
+    const posts = await ctx.db.query("posts").collect();
+    const broken = posts.filter((post) => isBrokenArticleHtml(post.content));
+
+    const batch = broken.slice(0, limit);
+    for (const post of batch) {
+      await ctx.db.patch(post._id, { content: toArticleHtml(post.content) });
+    }
+
+    return {
+      scanned: posts.length,
+      repaired: batch.length,
+      remaining: broken.length - batch.length,
     };
   },
 });
